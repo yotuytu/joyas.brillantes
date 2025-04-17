@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tienda de Joyería</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    header, footer { background: #f8f8f8; padding: 20px; text-align: center; }
+    nav { background: #111; padding: 10px; display: flex; justify-content: center; align-items: center; flex-wrap: wrap; }
+    nav a, nav button { color: #fff; margin: 5px 10px; text-decoration: none; background: none; border: none; cursor: pointer; font-size: 16px; }
+    nav button:hover, nav a:hover { text-decoration: underline; }
+    .hero { background: #eee; padding: 40px 20px; text-align: center; }
+    .hero h1 { margin-bottom: 10px; }
+    .products { display: flex; flex-wrap: wrap; justify-content: center; padding: 20px; }
+    .product { border: 1px solid #ccc; border-radius: 8px; margin: 10px; padding: 15px; text-align: center; width: 200px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: transform 0.2s; }
+    .product:hover { transform: scale(1.05); }
+    .product img { width: 100%; border-radius: 8px; }
+    .btn { padding: 10px 20px; background: #000; color: #fff; border: none; cursor: pointer; border-radius: 4px; }
+    .cart {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 15px;
+      width: 320px;
+      display: none;
+      z-index: 1000;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .cart ul { list-style: none; padding: 0; max-height: 300px; overflow-y: auto; }
+    .cart ul li { margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .btn-finalizar { background: green; margin-top: 10px; width: 100%; }
+    #total { margin-top: 10px; font-weight: bold; text-align: right; }
+  </style>
+  <style>
+    header {
+      background: url('imagenes/joyeria 2.5.jpg') no-repeat center center; /* Imagen de fondo */
+      background-size: cover; /* Ajusta la imagen para que cubra todo el espacio */
+      color: white; /* Cambia el color del texto para que sea visible */
+      text-align: center;
+      padding: 150px 20px; /* Espaciado interno para que el texto no esté sobre la imagen */
+      position: relative; /* Para posicionar el texto */
+    }
+  
+    header h1, header p {
+      position: relative;
+      z-index: 2; /* Asegura que el texto esté encima del fondo */
+    }
+  
+    header::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5); /* Capa oscura para mejorar la visibilidad del texto */
+      z-index: 1; /* Capa detrás del texto */
+    }
+  </style> 
+  <style>
+    /* Estilo del modal */
+    .modal {
+      display: none; /* Oculto por defecto */
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.8); /* Fondo oscuro */
+    }
+  
+    .modal-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 500px;
+      text-align: center;
+    }
+  
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+  </style>
+  </style>
+</head>
+<body>
+  <header>  
+    <h1>Joyería Brillante</h1>
+    <p>Encuentra las piezas más elegantes</p>
+  </header>
+ 
+  <nav>
+    <a href="#">Inicio</a>
+    <a href="#productos">Productos</a>
+    <a href="#contacto">Contacto</a>
+    <button onclick="toggleCart()">🛒 Ver Carrito (<span id="cart-count">0</span>)</button>
+  </nav>
+
+  <section class="hero">
+    <h1>Nueva Colección 2025</h1>
+    <p>Descubre elegancia y estilo</p>
+  </section>
+
+  <section class="products" id="productos"></section>
+
+  <div class="cart">
+    <h3>Carrito</h3>
+    <ul id="cart-items"></ul>
+    <div id="total">Total: $0.00</div>
+    <button class="btn btn-finalizar" onclick="finalizarCompra()">Finalizar Compra</button>
+  </div>
+
+  <section id="contacto" style="padding: 20px;">
+    <h2>Contacto</h2>
+    <p>Para pagar presencialmente o por Yape, comunícate al WhatsApp: <strong>+51 990091748</strong></p>
+    <p>O escríbenos al correo: <strong>joyas.unicas@gmail.com</strong></p>
+  </section>
+
+  <footer>
+    <p>&copy; 2025 Joyería Brillante. Todos los derechos reservados.</p>
+  </footer>
+
+  <script>
+    // Función para cerrar el modal
+    function closeModal() {
+      const modal = document.getElementById("product-modal");
+      modal.style.display = "none";
+    }
+    // Modal para mostrar detalles del producto
+    function showModal(index) {
+      const modal = document.getElementById("product-modal");
+      const product = productos[index];
+      document.getElementById("modal-image").src = product.img;
+      document.getElementById("modal-title").textContent = product.nombre;
+      document.getElementById("modal-price").textContent = `S/${product.precio}`;
+      modal.style.display = "block";
+    }
+    const productos = [
+      { nombre: "Pizas de inicios de clases , cada uno ", precio: 5, img: "imagenes/piezas de vaciones.jpeg" },
+      { nombre: "Collares de cadena unicos , cada uno ", precio: 5, img: "imagenes/joyeria versatil.jpeg" },
+      { nombre: "Collar copo de nieve ", precio: 20, img: "imagenes/collar copo de nieve.jpeg" },
+      { nombre: "Pulseras elegantes , cada uno ", precio: 5, img: "imagenes/conjunto de pulseras.jpeg" },
+      { nombre: "Conjuntos de collares unicos , cada uno ", precio: 8, img: "imagenes/juego de moda.jpeg" },
+      { nombre: "Collares de modo , cada uno", precio: 5, img: "imagenes/collares de moda para mujer.jpeg" },
+      { nombre: "Flores rosas con perlas", precio: 15, img: "imagenes/imagen 7 .jpg" },
+      { nombre: "Flores y detalles de hojas", precio: 15, img: "imagenes/iamgen 8 .jpg" },
+      { nombre: "Aretes de hoja de Arce Rojo", precio: 20, img: "imagenes/imagen 9.jpg" },
+      { nombre: "Pendientes de Corazon ", precio: 15, img: "imagenes/imagen 10.jpg" },
+      { nombre: "Colgante de Cisne Elegante ", precio: 15, img: "imagenes/imagen 11.jpg" },
+      { nombre: "Par de Elegantes Aretes de Cisne", precio: 20, img: "imagenes/imagen 12.jpg" },
+      { nombre: "Pendientes de Corazon hueco", precio: 20, img: "imagenes/imagen 13.jpg" },
+      { nombre: "Collar Infinito", precio: 120, img: "https://via.placeholder.com/200x200?text=Collar+4" },
+      { nombre: "Pulsera Trenzada", precio: 45, img: "https://via.placeholder.com/200x200?text=Pulsera+4" },
+      { nombre: "Aros Rosados", precio: 78, img: "https://via.placeholder.com/200x200?text=Aros+2" },
+      { nombre: "Anillo Minimalista", precio: 59, img: "https://via.placeholder.com/200x200?text=Anillo+5" },
+      { nombre: "Collar Corazón", precio: 92, img: "https://via.placeholder.com/200x200?text=Collar+5" },
+      { nombre: "Pulsera Charms", precio: 99, img: "https://via.placeholder.com/200x200?text=Pulsera+5" },
+      { nombre: "Pendientes Largos", precio: 65, img: "https://via.placeholder.com/200x200?text=Pendientes+3" }
+    ];
+
+    let cart = [];
+
+    function renderProductos() {
+      const container = document.querySelector('.products');
+      productos.forEach((prod, index) => {
+        container.innerHTML += `
+          <div class="product" onclick="showModal(${index})">
+            <img src="${prod.img}" alt="${prod.nombre}">
+            <h3>${prod.nombre}</h3>
+            <p>S/${prod.precio}</p>
+            <button class="btn" onclick="addToCart(${index}); event.stopPropagation();">Agregar al carrito</button>
+          </div>`;
+      });
+    }
+
+    function addToCart(index) {
+      cart.push(productos[index]);
+      document.getElementById("cart-count").textContent = cart.length;
+      updateCartView();
+    }
+
+    function toggleCart() {
+      const cartBox = document.querySelector(".cart");
+      cartBox.style.display = cartBox.style.display === "block" ? "none" : "block";
+      updateCartView();
+    }
+
+    function removeFromCart(i) {
+      cart.splice(i, 1);
+      document.getElementById("cart-count").textContent = cart.length;
+      updateCartView();
+    }
+
+    function updateCartView() {
+      const list = document.getElementById("cart-items");
+      const totalDisplay = document.getElementById("total");
+      list.innerHTML = "";
+      let total = 0;
+      cart.forEach((item, i) => {
+        list.innerHTML += `<li>${item.nombre} - S/${item.precio} <button onclick="removeFromCart(${i})">❌</button></li>`;
+        total += item.precio;
+      });
+      totalDisplay.textContent = `Total: S/${total.toFixed(2)}`;
+    }
+
+    function finalizarCompra() {
+      if (cart.length === 0) {
+        alert("El carrito está vacío.");
+      } else {
+        const mensaje = encodeURIComponent("Hola, quiero finalizar mi compra con los siguientes productos:\n" + cart.map(p => `- ${p.nombre} (S/${p.precio})`).join("\n")) + "\n\nTotal: S/" + cart.reduce((sum, p) => sum + p.precio, 0).toFixed(2);
+        window.open(`https://wa.me/51990091748?text=${mensaje}`, "_blank");
+      }
+    }
+
+    window.onload = renderProductos;
+  </script>
+  <div id="product-modal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <img id="modal-image" src="" alt="Producto" style="width: 100%; border-radius: 8px;">
+      <h3 id="modal-title"></h3>
+      <p id="modal-price"></p>
+    </div>
+  </div>
+</body>
+</html>
+x2 
